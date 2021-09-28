@@ -1,4 +1,4 @@
-import { BrowserRouter as Link, useHistory, Redirect } from 'react-router-dom';
+import { Link, useHistory, Redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { Container } from './styles';
@@ -41,7 +41,10 @@ const Login = ({
         console.log(response.data.user.id);
         const { token } = response.data;
         localStorage.setItem('@KenzieHub:token', JSON.stringify(token));
-        localStorage.setItem('@KenzieHub:id', response.data.user.id);
+        localStorage.setItem(
+          '@KenzieHub:id',
+          JSON.stringify(response.data.user.id)
+        );
         setAuthenticated(true);
         return history.push('/dashboard');
       })

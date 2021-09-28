@@ -7,56 +7,64 @@ import { toast } from 'react-toastify';
 import { useEffect, useState } from 'react';
 import { Container } from './styles';
 
-const Dashboard = ({
-  authenticated,
-  setCurrentUserEmail,
-  currentUserEmail,
-}) => {
-  const [apiResponse, setApiResponse] = useState(false);
-  const [userTech, setUserTech] = useState();
+const Dashboard = ({ authenticated }) => {
+  const [userTech, setUserTech] = useState([]);
+  const [token] = useState(
+    JSON.parse(localStorage.getItem('@KenzieHub:token')) || ''
+  );
+  const [userID] = useState(JSON.parse(localStorage.getItem('@KenzieHub:id')));
+
+  const { register, handleSubmit } = useForm();
+
+  const getTechs = () => {
+    api
+      .get(`/users/${userID}`)
+      .then((response) => {
+        setUserTech(response.data.techs);
+      })
+      .catch((err) => console.log(err));
+  };
 
   useEffect(() => {
-    console.log(localStorage.getItem('@KenzieHub:id'));
-    api
-      .get(`/users/${localStorage.getItem('@KenzieHub:id')}`)
-      .then((response) => {
-        setUserTech(response.techs);
-        setApiResponse(true);
-        console.log(currentUserEmail);
-      });
+    getTechs();
   }, []);
-  // if (apiResponse) {
-  //   setUser(usersArray.find((obj) => obj.email === currentUserEmail));
-  //   setUserTech(user.techs);
-  // }
-  // console.log(user);
-  // const filtered = (users) => {
-  //   if (users.email === currentUserEmail) {
-  //     return users;
-  //   }
-  // };
-
-  // const currentUser = usersArray.filter(filtered);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(),
-  });
 
   const handleTech = (data) => {
     api
-      .post('/users/techs', data)
-      .then((response) => toast.success('Tecnologia adicionada com sucesso!'))
-      .catch((err) => toast.error('Erro ao adicionar, tente novamente!'));
+      .post(
+        '/users/techs',
+        {
+          title: data.title,
+          status: data.status,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        toast.success('Tecnologia adicionada com sucesso!');
+        getTechs();
+      })
+      .catch((err) => {
+        console.log(data);
+        toast.error('Erro ao adicionar, tente novamente!');
+      });
   };
 
   const deleteTech = (id) => {
+    const filteredTechs = userTech.filter((tech) => tech.id !== id);
     api
-      .delete(`/users/techs/${id}`)
-      .then((response) => toast.success('Tecnologia deletada com sucesso!'))
+      .delete(`/users/techs/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        toast.success('Tecnologia deletada com sucesso!');
+        setUserTech(filteredTechs);
+      })
       .catch((err) => toast.error('Erro ao deletar, tente novamente!'));
   };
   console.log(authenticated);
@@ -74,16 +82,20 @@ const Dashboard = ({
           <button type="submit">Adicionar</button>
         </form>
       </div>
-      <div>
-        {apiResponse &&
-          userTech.map((obj, index) => (
-            <div key={index}>
-              <p>Título da tech: {obj.title}</p>
-              <p>Status: {obj.status}</p>
-              <button onClick={() => deleteTech(obj.id)}>Deletar tech</button>
-            </div>
-          ))}
-      </div>
+      {userTech.length > 0 ? (
+        userTech.map((obj, index) => (
+          <div key={index}>
+            <p>Título da tech: {obj.title}</p>
+            <p>Status: {obj.status}</p>
+            <button onClick={() => deleteTech(obj.id)}>Deletar tech</button>
+          </div>
+        ))
+      ) : (
+        <p>
+          Parece que você não tem nenhuma tecnologia adicionada, que tal
+          adicionar uma agora?
+        </p>
+      )}
     </Container>
   );
 };
