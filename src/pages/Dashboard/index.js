@@ -69,9 +69,10 @@ const Dashboard = ({ authenticated }) => {
   };
   console.log(authenticated);
 
-  // if (!authenticated) {
-  //   return <Redirect to="/login" />;
-  // }
+  if (!authenticated) {
+    return <Redirect to="/login" />;
+  }
+
   return (
     <Container>
       <h2>Dashboard</h2>
@@ -82,20 +83,24 @@ const Dashboard = ({ authenticated }) => {
           <button type="submit">Adicionar</button>
         </form>
       </div>
-      {userTech.length > 0 ? (
-        userTech.map((obj, index) => (
-          <div key={index}>
-            <p>Título da tech: {obj.title}</p>
-            <p>Status: {obj.status}</p>
-            <button onClick={() => deleteTech(obj.id)}>Deletar tech</button>
-          </div>
-        ))
-      ) : (
-        <p>
-          Parece que você não tem nenhuma tecnologia adicionada, que tal
-          adicionar uma agora?
-        </p>
-      )}
+      <div className="div__container">
+        {userTech.length > 0 ? (
+          userTech.map((obj, index) => (
+            <div className="div__techs" key={index}>
+              <p>Título da tech: {obj.title}</p>
+              <p>Status: {obj.status}</p>
+              <button className="button_add" onClick={() => deleteTech(obj.id)}>
+                Deletar tech
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>
+            Parece que você não tem nenhuma tecnologia adicionada, que tal
+            adicionar uma agora?
+          </p>
+        )}
+      </div>
     </Container>
   );
 };
